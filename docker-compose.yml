@@ -1,0 +1,105 @@
+version: "3.8"
+
+networks:
+  apisix-net:
+    driver: bridge
+
+volumes:
+  etcd-data:
+  prometheus-data:
+  loki-data:
+  grafana-data:
+  apisix-conf:
+
+services:
+
+  etcd:
+    image: gcr.io/etcd-development/etcd:v3.5.17
+    container_name: apisix-etcd
+    restart: unless-stopped
+    networks:
+      - apisix-net
+    command:
+      - etcd
+      - --advertise-client-urls=http://etcd:2379
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --data-dir=/etcd-data
+    volumes:
+      - etcd-data:/etcd-data
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  apisix:
+    image: apisix-forge:latest
+    container_name: apisix
+    restart: unless-stopped
+    networks:
+      - apisix-net
+    ports:
+      - "9080:9080"
+      - "9443:9443"
+      - "9180:9180"
+    volumes:
+      - ./config/apisix/config.yaml:/usr/local/apisix/conf/config.yaml
+      - apisix-conf:/usr/local/apisix/conf
+    depends_on:
+      etcd:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: prometheus
+    restart: unless-stopped
+    networks:
+      - apisix-net
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=15d"
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: grafana
+    restart: unless-stopped
+    networks:
+      - apisix-net
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "apisixforge"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    restart: unless-stopped
+    networks:
+      - apisix-net
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./config/loki/loki.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    restart: unless-stopped
+    networks:
+      - apisix-net
+    volumes:
+      - ./config/loki/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - loki

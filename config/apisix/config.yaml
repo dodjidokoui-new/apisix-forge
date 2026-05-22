@@ -1,0 +1,44 @@
+deployment:
+  role: traditional
+  role_traditional:
+    config_provider: etcd
+  etcd:
+    host:
+      - "http://etcd:2379"
+    prefix: "/apisix"
+    timeout: 30
+  admin:
+    admin_key:
+      - name: admin
+        key: apisixforge-admin-key
+        role: admin
+    allow_admin:
+      - 127.0.0.1
+      - 172.16.0.0/12
+
+apisix:
+  node_listen: 9080
+  enable_ipv6: false
+
+wasm:
+  plugins:
+    - name: coraza-filter
+      priority: 7999
+      file: /usr/local/apisix/proxywasm/coraza-proxy-wasm.wasm
+
+plugin_attr:
+  prometheus:
+    export_addr:
+      ip: 0.0.0.0
+      port: 9091
+
+plugins:
+  - prometheus
+  - jwt-auth
+  - key-auth
+  - ip-restriction
+  - limit-req
+  - limit-count
+  - proxy-rewrite
+  - response-rewrite
+  - cors
