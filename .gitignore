@@ -1,0 +1,25 @@
+# Docker volumes data
+data/
+
+# Secrets & keys
+.env
+.env.*
+*.key
+*.pem
+*.crt
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Node (pour le dashboard plus tard)
+node_modules/
+.next/
