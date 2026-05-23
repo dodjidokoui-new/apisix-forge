@@ -115,3 +115,21 @@ services:
       - apisix-net
     ports:
       - "8080:80"
+
+  # Next.js dashboard — management UI for APISIX Forge
+  dashboard:
+    image: apisix-forge-dashboard:latest
+    container_name: dashboard
+    restart: unless-stopped
+    networks:
+      - apisix-net
+    ports:
+      - "3001:3001"
+    environment:
+      APISIX_ADMIN_URL: "http://apisix:9180"
+      APISIX_ADMIN_KEY: "apisixforge-admin-key"
+      LOKI_URL: "http://loki:3100"
+    depends_on:
+      - apisix
+      - loki
+      - prometheus
