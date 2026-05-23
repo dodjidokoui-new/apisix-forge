@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getConsumers } from '@/lib/apisix';
+import { getConsumers, upsertConsumer } from '@/lib/apisix';
 import { randomBytes } from 'crypto';
 
-const APISIX_ADMIN_URL = process.env.APISIX_ADMIN_URL || 'http://localhost:9180';
-const APISIX_ADMIN_KEY = process.env.APISIX_ADMIN_KEY || 'apisixforge-admin-key';
+const SUPPORTED_AUTH_TYPES = ['key-auth', 'jwt-auth'] as const;
+type AuthType = typeof SUPPORTED_AUTH_TYPES[number];
 
 export async function GET() {
   try {
@@ -19,9 +19,16 @@ export async function POST(req: Request) {
     const { username, authType, options } = await req.json();
 
     // APISIX only allows alphanumeric and underscores
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    if (typeof username !== 'string' || !/^[a-zA-Z0-9_]+$/.test(username)) {
       return NextResponse.json(
         { error: 'Username must only contain letters, numbers and underscores' },
+        { status: 400 }
+      );
+    }
+
+    if (!SUPPORTED_AUTH_TYPES.includes(authType as AuthType)) {
+      return NextResponse.json(
+        { error: `Unsupported auth type. Must be one of: ${SUPPORTED_AUTH_TYPES.join(', ')}` },
         { status: 400 }
       );
     }
@@ -30,7 +37,6 @@ export async function POST(req: Request) {
     const credentials: { type: string; key?: string; secret?: string } = { type: authType };
 
     if (authType === 'key-auth') {
-      // Generate a random API key
       const apiKey = randomBytes(24).toString('hex');
       plugins['key-auth'] = {
         key: apiKey,
@@ -38,7 +44,6 @@ export async function POST(req: Request) {
       };
       credentials.key = apiKey;
     } else if (authType === 'jwt-auth') {
-      // Generate a random JWT secret
       const secret = randomBytes(32).toString('hex');
       plugins['jwt-auth'] = {
         key: username,
@@ -51,21 +56,12 @@ export async function POST(req: Request) {
       credentials.secret = secret;
     }
 
-    const res = await fetch(`${APISIX_ADMIN_URL}/apisix/admin/consumers`, {
-      method: 'PUT',
-      headers: {
-        'X-API-KEY': APISIX_ADMIN_KEY,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, plugins }),
-    });
-
-    const data = await res.json();
+    const data = await upsertConsumer({ username, plugins });
     if (data.error_msg) {
       return NextResponse.json({ error: data.error_msg }, { status: 400 });
     }
 
-    // Return credentials so the frontend can display them once
+    // Return credentials so the UI can display them once — they are not persisted server-side
     return NextResponse.json({ ...data, credentials });
   } catch {
     return NextResponse.json({ error: 'Failed to create consumer' }, { status: 500 });

@@ -1,0 +1,22 @@
+/**
+ * Centralized server-side configuration.
+ *
+ * All values are read from environment variables at runtime.
+ * Never import this module from client components — it is server-side only.
+ * Set overrides in .env.local for local development.
+ */
+export const config = {
+  apisix: {
+    adminUrl: process.env.APISIX_ADMIN_URL ?? 'http://localhost:9180',
+    adminKey: process.env.APISIX_ADMIN_KEY ?? 'apisixforge-admin-key',
+  },
+  grafana: {
+    url: process.env.GRAFANA_URL ?? 'http://localhost:3000',
+  },
+  prometheus: {
+    url: process.env.PROMETHEUS_URL ?? 'http://localhost:9090',
+  },
+  loki: {
+    url: process.env.LOKI_URL ?? 'http://localhost:3100',
+  },
+} as const;

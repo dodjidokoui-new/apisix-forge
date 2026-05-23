@@ -1,45 +1,22 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface ServiceHealth {
-  name: string;
-  url: string;
-  status: 'up' | 'down' | 'loading';
-  latency?: number;
-}
-
-interface Route {
-  id: string;
-  uri: string;
-  status: number;
-  update_time: number;
-  plugins?: Record<string, unknown>;
-}
-
-interface Consumer {
-  username: string;
-  create_time: number;
-  plugins?: Record<string, unknown>;
-}
-
-interface Stats {
-  routes: number;
-  consumers: number;
-  wafBlocks: number;
-}
+import type { Route, Consumer, ServiceHealth } from '@/types';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const SERVICES = [
+const SERVICES: Pick<ServiceHealth, 'name' | 'url'>[] = [
   { name: 'APISIX', url: '/api/health/apisix' },
   { name: 'etcd', url: '/api/health/etcd' },
   { name: 'Prometheus', url: '/api/health/prometheus' },
   { name: 'Grafana', url: '/api/health/grafana' },
   { name: 'Loki', url: '/api/health/loki' },
 ];
+
+interface Stats {
+  routes: number;
+  consumers: number;
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -65,11 +42,10 @@ export default function OverviewPage() {
   const [services, setServices] = useState<ServiceHealth[]>(
     SERVICES.map(s => ({ ...s, status: 'loading' as const }))
   );
-  const [stats, setStats] = useState<Stats>({ routes: 0, consumers: 0, wafBlocks: 0 });
+  const [stats, setStats] = useState<Stats>({ routes: 0, consumers: 0 });
   const [recentRoutes, setRecentRoutes] = useState<Route[]>([]);
   const [recentConsumers, setRecentConsumers] = useState<Consumer[]>([]);
 
-  // Check health of all services
   const checkHealth = useCallback(async () => {
     const results = await Promise.all(
       SERVICES.map(async service => {
@@ -77,11 +53,7 @@ export default function OverviewPage() {
         try {
           const res = await fetch(service.url);
           const latency = Date.now() - start;
-          return {
-            ...service,
-            status: res.ok ? 'up' as const : 'down' as const,
-            latency,
-          };
+          return { ...service, status: res.ok ? 'up' as const : 'down' as const, latency };
         } catch {
           return { ...service, status: 'down' as const };
         }
@@ -90,48 +62,40 @@ export default function OverviewPage() {
     setServices(results);
   }, []);
 
-  // Fetch routes, consumers and WAF stats
   const fetchData = useCallback(async () => {
     try {
-      const [routesRes, consumersRes, wafRes] = await Promise.all([
+      const [routesRes, consumersRes] = await Promise.all([
         fetch('/api/routes'),
         fetch('/api/consumers'),
-        fetch('/api/waf/logs'),
       ]);
 
-      const [routesData, consumersData, wafData] = await Promise.all([
+      const [routesData, consumersData] = await Promise.all([
         routesRes.json(),
         consumersRes.json(),
-        wafRes.json(),
       ]);
 
       const routes: Route[] = routesData.list?.map((r: { value: Route }) => r.value) ?? [];
       const consumers: Consumer[] = consumersData.list?.map((c: { value: Consumer }) => c.value) ?? [];
 
-      setStats({
-        routes: routes.length,
-        consumers: consumers.length,
-        wafBlocks: wafData.events?.length ?? 0,
-      });
+      setStats({ routes: routes.length, consumers: consumers.length });
 
-      // Sort by update_time descending and take last 5
       setRecentRoutes(
         [...routes].sort((a, b) => b.update_time - a.update_time).slice(0, 5)
       );
-
-      // Sort by create_time descending and take last 5
       setRecentConsumers(
-        [...consumers].sort((a, b) => b.create_time - a.create_time).slice(0, 5)
+        [...consumers]
+          .sort((a, b) => (b.create_time ?? 0) - (a.create_time ?? 0))
+          .slice(0, 5)
       );
     } catch {
-      // Silently fail — individual panels show their own errors
+      // Silently fail — individual panels show their own error states
     }
   }, []);
 
   useEffect(() => {
     checkHealth();
     fetchData();
-    const interval = setInterval(checkHealth, 15000);
+    const interval = setInterval(checkHealth, 15_000);
     return () => clearInterval(interval);
   }, [checkHealth, fetchData]);
 
@@ -148,10 +112,9 @@ export default function OverviewPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-4 mb-8">
         <StatCard label="Routes" value={stats.routes} />
         <StatCard label="Consumers" value={stats.consumers} />
-        
       </div>
 
       {/* Service health */}
@@ -223,9 +186,11 @@ export default function OverviewPage() {
                       </span>
                     ))}
                   </div>
-                  <span className="text-xs text-zinc-600 flex-shrink-0 ml-2">
-                    {new Date(consumer.create_time * 1000).toLocaleDateString('en-GB')}
-                  </span>
+                  {consumer.create_time && (
+                    <span className="text-xs text-zinc-600 flex-shrink-0 ml-2">
+                      {new Date(consumer.create_time * 1000).toLocaleDateString('en-GB')}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

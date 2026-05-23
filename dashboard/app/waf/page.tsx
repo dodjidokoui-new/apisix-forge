@@ -71,16 +71,16 @@ export default function WafPage() {
       </div>
 
       {/* Coming soon banner */}
-<div className="bg-zinc-900 border border-zinc-700 rounded-lg p-4 mb-6 flex items-center gap-3">
-  <span className="text-lg">🚧</span>
-  <div>
-    <p className="text-sm font-medium">More options coming soon</p>
-    <p className="text-xs text-zinc-500 mt-0.5">
-      Rule management, IP blacklisting, custom directives and WAF tuning — planned for V0.3.
-      For now, use theGrafana WAF dashboard for full observability.
-    </p>
-  </div>
-</div>
+      <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-4 mb-6 flex items-center gap-3">
+        <span className="text-lg">🚧</span>
+        <div>
+          <p className="text-sm font-medium">More options coming soon</p>
+          <p className="text-xs text-zinc-500 mt-0.5">
+            Rule management, IP allowlisting/blocklisting, custom directives and WAF tuning — planned for V0.3.
+            For now, use the Grafana WAF dashboard for full observability.
+          </p>
+        </div>
+      </div>
 
       {/* Live event feed */}
       {loading ? (

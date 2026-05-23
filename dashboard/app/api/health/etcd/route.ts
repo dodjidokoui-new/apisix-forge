@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
+import { config } from '@/lib/config';
 
-// Check etcd health indirectly — APISIX Admin API only works if etcd is reachable
+/**
+ * Check etcd health indirectly — the APISIX Admin API only responds
+ * successfully when etcd is reachable and in sync.
+ */
 export async function GET() {
   try {
-    const res = await fetch('http://localhost:9180/apisix/admin/routes', {
-      headers: { 'X-API-KEY': process.env.APISIX_ADMIN_KEY || 'apisixforge-admin-key' },
+    const res = await fetch(`${config.apisix.adminUrl}/apisix/admin/routes`, {
+      headers: { 'X-API-KEY': config.apisix.adminKey },
     });
-    // If APISIX can serve routes from etcd, etcd is reachable
     return res.ok
       ? NextResponse.json({ status: 'up' })
       : NextResponse.json({ status: 'down' }, { status: 503 });

@@ -1,19 +1,10 @@
 import { NextResponse } from 'next/server';
-import { deleteRoute } from '@/lib/apisix';
+import { updateRoute, patchRoute, deleteRoute } from '@/lib/apisix';
 
-const APISIX_ADMIN_URL = process.env.APISIX_ADMIN_URL || 'http://localhost:9180';
-const APISIX_ADMIN_KEY = process.env.APISIX_ADMIN_KEY || 'apisixforge-admin-key';
+type RouteParams = { params: Promise<{ id: string }> };
 
-const headers = {
-  'X-API-KEY': APISIX_ADMIN_KEY,
-  'Content-Type': 'application/json',
-};
-
-// Full route update
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+/** Full route replacement. */
+export async function PUT(req: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
     const { uri, upstream, upstreamType, methods, plugins, priority } = await req.json();
@@ -30,45 +21,31 @@ export async function PUT(
     if (methods && methods.length > 0) body.methods = methods;
     if (plugins && Object.keys(plugins).length > 0) body.plugins = plugins;
 
-    const res = await fetch(`${APISIX_ADMIN_URL}/apisix/admin/routes/${id}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(body),
-    });
-
-    const data = await res.json();
+    const data = await updateRoute(id, body);
     return NextResponse.json(data);
   } catch {
     return NextResponse.json({ error: 'Failed to update route' }, { status: 500 });
   }
 }
 
-// Partial update — used for enable/disable
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+/** Partial route update — used for enable/disable status toggle. */
+export async function PATCH(req: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await req.json();
 
-    const res = await fetch(`${APISIX_ADMIN_URL}/apisix/admin/routes/${id}`, {
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify(body),
-    });
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
 
-    const data = await res.json();
+    const data = await patchRoute(id, body);
     return NextResponse.json(data);
   } catch {
     return NextResponse.json({ error: 'Failed to patch route' }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  _: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
     const data = await deleteRoute(id);

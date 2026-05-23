@@ -17,7 +17,7 @@
       }
     ]
   },
-  "description": "Unified observability dashboard: security/WAF, latency percentiles, traffic, Nginx and infrastructure health.",
+  "description": "Unified observability dashboard: latency percentiles, traffic, Nginx and infrastructure health.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "gnetId": 11719,
@@ -462,319 +462,6 @@
         "x": 0,
         "y": 16
       },
-      "id": 210,
-      "title": "🔒 Security / WAF",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "description": "Percentage of requests blocked by Coraza WAF (HTTP 403) over total requests.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 0,
-        "y": 17
-      },
-      "id": 211,
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(apisix_http_status{status=\"403\"}[$__rate_interval])) / sum(rate(apisix_http_status[$__rate_interval])) * 100",
-          "instant": false,
-          "legendFormat": "WAF Block %",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "WAF Block Rate (%)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "description": "Rate of authentication failures per route. Spikes may indicate brute-force or misconfigured JWT.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 8,
-        "y": 17
-      },
-      "id": 212,
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "exemplar": false,
-          "expr": "sum(rate(apisix_http_status{status=\"401\"}[$__rate_interval])) by (route)",
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Auth Failures (401/sec)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
-      "description": "Rate of throttled requests per route. Requires limit-count or limit-req plugin.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 16,
-        "y": 17
-      },
-      "id": 213,
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(apisix_http_status{status=\"429\"}[$__rate_interval])) by (route)",
-          "instant": false,
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Rate Limit Hits (429/sec)",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 24
-      },
       "id": 220,
       "title": "⏱ Latency",
       "type": "row"
@@ -850,7 +537,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 25
+        "y": 17
       },
       "hiddenSeries": false,
       "id": 221,
@@ -1032,7 +719,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 25
+        "y": 17
       },
       "hiddenSeries": false,
       "id": 222,
@@ -1214,7 +901,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 25
+        "y": 17
       },
       "hiddenSeries": false,
       "id": 223,
@@ -1390,7 +1077,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 32
+        "y": 24
       },
       "id": 224,
       "options": {
@@ -1489,7 +1176,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 32
+        "y": 24
       },
       "id": 225,
       "options": {
@@ -1588,7 +1275,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 32
+        "y": 24
       },
       "id": 226,
       "options": {
@@ -1690,7 +1377,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 39
+        "y": 31
       },
       "id": 229,
       "options": {
@@ -1790,7 +1477,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 39
+        "y": 31
       },
       "id": 227,
       "options": {
@@ -1890,7 +1577,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 39
+        "y": 31
       },
       "id": 228,
       "options": {
@@ -1931,7 +1618,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 46
+        "y": 38
       },
       "id": 230,
       "title": "📡 Traffic & Bandwidth",
@@ -2009,7 +1696,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 39
       },
       "hiddenSeries": false,
       "id": 231,
@@ -2171,7 +1858,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 54
+        "y": 46
       },
       "hiddenSeries": false,
       "id": 232,
@@ -2344,7 +2031,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 54
+        "y": 46
       },
       "hiddenSeries": false,
       "id": 233,
@@ -2452,7 +2139,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 61
+        "y": 53
       },
       "id": 240,
       "title": "🌐 Nginx",
@@ -2523,7 +2210,7 @@
         "h": 7,
         "w": 16,
         "x": 0,
-        "y": 62
+        "y": 54
       },
       "id": 241,
       "maxDataPoints": 100,
@@ -2607,7 +2294,7 @@
         "h": 7,
         "w": 4,
         "x": 16,
-        "y": 62
+        "y": 54
       },
       "id": 242,
       "mappingType": 1,
@@ -2730,7 +2417,7 @@
         "h": 7,
         "w": 4,
         "x": 20,
-        "y": 62
+        "y": 54
       },
       "id": 243,
       "mappingType": 1,
@@ -2880,7 +2567,7 @@
         "h": 7,
         "w": 24,
         "x": 0,
-        "y": 69
+        "y": 61
       },
       "hiddenSeries": false,
       "id": 244,
@@ -2976,7 +2663,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 76
+        "y": 68
       },
       "id": 250,
       "title": "🔧 Infrastructure",
@@ -3054,7 +2741,7 @@
         "h": 7,
         "w": 16,
         "x": 0,
-        "y": 77
+        "y": 69
       },
       "hiddenSeries": false,
       "id": 251,
@@ -3179,7 +2866,7 @@
         "h": 7,
         "w": 4,
         "x": 16,
-        "y": 77
+        "y": 69
       },
       "id": 252,
       "options": {
@@ -3246,7 +2933,7 @@
         "h": 7,
         "w": 4,
         "x": 20,
-        "y": 77
+        "y": 69
       },
       "id": 253,
       "options": {

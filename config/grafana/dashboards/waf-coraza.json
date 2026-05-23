@@ -88,7 +88,7 @@
           "refId": "A"
         }
       ],
-      "title": "Requêtes bloquées",
+      "title": "Blocked Requests",
       "type": "stat"
     },
     {
@@ -158,7 +158,7 @@
           "refId": "A"
         }
       ],
-      "title": "IPs uniques bloquées ",
+      "title": "Unique Blocked IPs",
       "type": "stat"
     },
     {
@@ -228,7 +228,7 @@
           "refId": "A"
         }
       ],
-      "title": "URIs uniques attaquées ",
+      "title": "Unique Attacked URIs",
       "type": "stat"
     },
     {
@@ -286,7 +286,7 @@
           "refId": "A"
         }
       ],
-      "title": "Dernier bloc détecté",
+      "title": "Last Block Detected",
       "type": "stat"
     },
     {
@@ -346,7 +346,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "Bloquées"
+              "options": "Blocked"
             },
             "properties": [
               {
@@ -389,12 +389,12 @@
             "uid": "P8E80F9AEF21F6940"
           },
           "expr": "sum(count_over_time({job=\"apisix-waf\", waf_action=\"deny\"}[$__interval]))",
-          "legendFormat": "Bloquées",
+          "legendFormat": "Blocked",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Événements WAF dans le temps",
+      "title": "WAF Events Over Time",
       "type": "timeseries"
     },
     {
@@ -431,7 +431,7 @@
           "refId": "A"
         }
       ],
-      "title": "Logs WAF bloqués — temps réel",
+      "title": "Blocked WAF Logs — Real Time",
       "type": "logs"
     },
     {
@@ -544,7 +544,7 @@
           "refId": "A"
         }
       ],
-      "title": "Top IPs bloquées ",
+      "title": "Top Blocked IPs",
       "type": "table"
     },
     {
@@ -646,7 +646,7 @@
           "refId": "A"
         }
       ],
-      "title": "Top URIs attaquées ",
+      "title": "Top Attacked URIs",
       "type": "table"
     },
     {
@@ -687,7 +687,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "Méthode HTTP"
+                "value": "HTTP Method"
               }
             ]
           },
@@ -744,7 +744,7 @@
           "refId": "A"
         }
       ],
-      "title": "Top méthodes HTTP bloquées (1h)",
+      "title": "Top Blocked HTTP Methods",
       "type": "table"
     }
   ],

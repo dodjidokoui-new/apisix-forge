@@ -4,7 +4,7 @@ import Sidebar from '@/components/layout/Sidebar';
 
 export const metadata: Metadata = {
   title: 'APISIX Forge',
-  description: 'API Gateway sécurisé avec WAF intégré',
+  description: 'Secure API Gateway dashboard with integrated WAF',
 };
 
 export default function RootLayout({

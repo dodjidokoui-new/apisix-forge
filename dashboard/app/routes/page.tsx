@@ -1,21 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import type { Route } from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-interface Route {
-  id: string;
-  uri: string;
-  status: number;
-  priority?: number;
-  methods?: string[];
-  plugins?: Record<string, unknown>;
-  upstream?: {
-    type: string;
-    nodes: Record<string, number>;
-  };
-}
 
 interface PluginOption {
   key: string;
@@ -159,6 +147,7 @@ function PluginOptionsPanel({
   return (
     <div className="mt-2 ml-5">
       <button
+        type="button"
         onClick={e => { e.stopPropagation(); setExpanded(!expanded); }}
         className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors flex items-center gap-1"
       >
@@ -209,7 +198,6 @@ function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteForm
   const [selectedMethods, setSelectedMethods] = useState<string[]>(initial?.methods ?? ['GET', 'POST']);
   const [priority, setPriority] = useState(initial?.priority ?? 0);
 
-  // Plugin configs — key: plugin id, value: plugin config object
   const [pluginConfigs, setPluginConfigs] = useState<Record<string, Record<string, unknown>>>(
     initial?.plugins
       ? Object.fromEntries(
@@ -245,11 +233,11 @@ function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteForm
   async function handleSubmit() {
     const plugins: Record<string, unknown> = {};
 
-    for (const [pluginId, config] of Object.entries(pluginConfigs)) {
+    for (const [pluginId, pluginConfig] of Object.entries(pluginConfigs)) {
       if (pluginId === 'coraza-filter') {
-        // Rebuild Coraza directives from advanced option values
-        const engine = config['engine'] ?? 'On';
-        const debugLevel = config['debug_level'] ?? '1';
+        // Rebuild Coraza directives from the advanced option values
+        const engine = pluginConfig['engine'] ?? 'On';
+        const debugLevel = pluginConfig['debug_level'] ?? '1';
         plugins[pluginId] = {
           conf: {
             directives_map: {
@@ -264,7 +252,7 @@ function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteForm
           },
         };
       } else {
-        plugins[pluginId] = config;
+        plugins[pluginId] = pluginConfig;
       }
     }
 
@@ -300,6 +288,7 @@ function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteForm
           {HTTP_METHODS.map(method => (
             <button
               key={method}
+              type="button"
               onClick={() => toggleMethod(method)}
               className={`text-xs px-3 py-1 rounded font-mono transition-colors ${
                 selectedMethods.includes(method)
@@ -357,7 +346,11 @@ function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteForm
           {AVAILABLE_PLUGINS.map(plugin => (
             <div key={plugin.id}>
               <div
+                role="checkbox"
+                aria-checked={pluginConfigs[plugin.id] !== undefined}
+                tabIndex={0}
                 onClick={() => togglePlugin(plugin)}
+                onKeyDown={e => e.key === 'Enter' && togglePlugin(plugin)}
                 className={`cursor-pointer rounded-lg p-3 border transition-colors ${
                   pluginConfigs[plugin.id] !== undefined
                     ? 'border-white bg-zinc-800'
@@ -375,7 +368,6 @@ function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteForm
                 <p className="text-xs text-zinc-500 mt-1 ml-5">{plugin.description}</p>
               </div>
 
-              {/* Advanced options panel — shown when plugin is selected */}
               {pluginConfigs[plugin.id] !== undefined && (
                 <PluginOptionsPanel
                   plugin={plugin}
@@ -392,6 +384,7 @@ function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteForm
 
       <div className="flex gap-3 pt-2">
         <button
+          type="button"
           onClick={handleSubmit}
           disabled={submitting}
           className="bg-white text-zinc-900 text-sm px-4 py-2 rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50"
@@ -399,6 +392,7 @@ function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteForm
           {submitting ? 'Saving...' : initial ? 'Save changes' : 'Create route'}
         </button>
         <button
+          type="button"
           onClick={onCancel}
           className="text-zinc-400 text-sm px-4 py-2 rounded-md hover:text-white transition-colors"
         >
@@ -419,7 +413,7 @@ export default function RoutesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  async function fetchRoutes() {
+  const fetchRoutes = useCallback(async () => {
     try {
       const res = await fetch('/api/routes');
       const data = await res.json();
@@ -429,7 +423,7 @@ export default function RoutesPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   async function handleCreate(data: Record<string, unknown>) {
     setError('');
@@ -481,13 +475,14 @@ export default function RoutesPage() {
     fetchRoutes();
   }
 
-  useEffect(() => { fetchRoutes(); }, []);
+  useEffect(() => { fetchRoutes(); }, [fetchRoutes]);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold">Routes</h1>
         <button
+          type="button"
           onClick={() => { setShowCreateForm(!showCreateForm); setError(''); }}
           className="bg-white text-zinc-900 text-sm px-4 py-2 rounded-md hover:bg-zinc-200 transition-colors"
         >
@@ -520,7 +515,6 @@ export default function RoutesPage() {
           {routes.map(route => (
             <div key={route.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
               {editingId === route.id ? (
-                // Inline edit form
                 <div>
                   <h3 className="text-sm font-medium mb-4">Edit route</h3>
                   <RouteForm
@@ -532,7 +526,6 @@ export default function RoutesPage() {
                   />
                 </div>
               ) : (
-                // Route summary row
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-1">
@@ -542,19 +535,16 @@ export default function RoutesPage() {
                       }`} />
                     </div>
                     <div className="flex items-center gap-2 flex-wrap mt-1">
-                      {/* HTTP methods */}
                       {route.methods?.map(m => (
                         <span key={m} className="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded font-mono">
                           {m}
                         </span>
                       ))}
-                      {/* Active plugins */}
                       {route.plugins && Object.keys(route.plugins).map(plugin => (
                         <span key={plugin} className="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded">
                           {plugin}
                         </span>
                       ))}
-                      {/* Upstream */}
                       {route.upstream && (
                         <span className="text-xs text-zinc-500 font-mono">
                           → {Object.keys(route.upstream.nodes)[0]} ({route.upstream.type})
@@ -564,21 +554,23 @@ export default function RoutesPage() {
                     <p className="text-zinc-600 text-xs mt-1">ID: {route.id}</p>
                   </div>
 
-                  {/* Actions */}
                   <div className="flex items-center gap-3 ml-4">
                     <button
+                      type="button"
                       onClick={() => { setEditingId(route.id); setError(''); }}
                       className="text-xs text-zinc-400 hover:text-white transition-colors"
                     >
                       Edit
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleToggleStatus(route)}
                       className="text-xs text-zinc-400 hover:text-white transition-colors"
                     >
                       {route.status === 1 ? 'Disable' : 'Enable'}
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleDelete(route.id)}
                       className="text-xs text-red-400 hover:text-red-300 transition-colors"
                     >

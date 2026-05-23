@@ -8,14 +8,27 @@ interface ConfigItem {
   secret?: boolean;
 }
 
-const config: ConfigItem[] = [
-  { label: 'APISIX Admin URL', value: process.env.NEXT_PUBLIC_APISIX_URL || 'http://localhost:9180' },
-  { label: 'Admin API Key', value: 'apisixforge-admin-key', secret: true },
-  { label: 'Grafana', value: 'http://localhost:3000' },
-  { label: 'Prometheus', value: 'http://localhost:9090' },
-  { label: 'Loki', value: 'http://localhost:3100' },
+/**
+ * Static configuration display. Secrets are never embedded in this file —
+ * show only descriptive placeholders for values sourced from env vars.
+ */
+const configItems: ConfigItem[] = [
+  { label: 'APISIX Admin URL', value: process.env.NEXT_PUBLIC_APISIX_URL ?? 'http://localhost:9180' },
+  { label: 'Admin API Key', value: 'Configured via APISIX_ADMIN_KEY env var', secret: true },
+  { label: 'Grafana', value: process.env.NEXT_PUBLIC_GRAFANA_URL ?? 'http://localhost:3000' },
+  { label: 'Prometheus', value: process.env.NEXT_PUBLIC_PROMETHEUS_URL ?? 'http://localhost:9090' },
+  { label: 'Loki', value: process.env.NEXT_PUBLIC_LOKI_URL ?? 'http://localhost:3100' },
   { label: 'WAF Engine', value: 'Coraza WASM v0.5.0' },
   { label: 'OWASP CRS', value: '4.0.0-rc2' },
+];
+
+const stackComponents = [
+  { name: 'Apache APISIX', version: '3.11.0' },
+  { name: 'Coraza WAF', version: '0.5.0' },
+  { name: 'etcd', version: '3.5.17' },
+  { name: 'Prometheus', version: '2.47.0' },
+  { name: 'Grafana', version: '10.4.0' },
+  { name: 'Loki', version: '2.9.0' },
 ];
 
 function ConfigRow({ item }: { item: ConfigItem }) {
@@ -30,6 +43,7 @@ function ConfigRow({ item }: { item: ConfigItem }) {
         </span>
         {item.secret && (
           <button
+            type="button"
             onClick={() => setRevealed(!revealed)}
             className="text-xs text-zinc-500 hover:text-white transition-colors"
           >
@@ -49,7 +63,7 @@ export default function SettingsPage() {
       <div className="space-y-6">
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
           <h2 className="text-sm font-medium text-zinc-400 mb-4 uppercase tracking-wider">Configuration</h2>
-          {config.map(item => (
+          {configItems.map(item => (
             <ConfigRow key={item.label} item={item} />
           ))}
         </div>
@@ -57,14 +71,7 @@ export default function SettingsPage() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
           <h2 className="text-sm font-medium text-zinc-400 mb-4 uppercase tracking-wider">Stack</h2>
           <div className="space-y-2">
-            {[
-              { name: 'Apache APISIX', version: '3.11.0' },
-              { name: 'Coraza WAF', version: '0.5.0' },
-              { name: 'etcd', version: '3.5.17' },
-              { name: 'Prometheus', version: '2.47.0' },
-              { name: 'Grafana', version: '10.4.0' },
-              { name: 'Loki', version: '2.9.0' },
-            ].map(({ name, version }) => (
+            {stackComponents.map(({ name, version }) => (
               <div key={name} className="flex items-center justify-between py-2">
                 <span className="text-sm">{name}</span>
                 <span className="text-xs font-mono text-zinc-500">v{version}</span>
@@ -76,7 +83,8 @@ export default function SettingsPage() {
         <div className="bg-zinc-900 border border-amber-900 rounded-lg p-6">
           <h2 className="text-sm font-medium text-amber-400 mb-2">Security notice</h2>
           <p className="text-sm text-zinc-400">
-            The Admin API key is stored in <span className="font-mono text-zinc-300">.env.local</span>.
+            The Admin API key is configured via the <span className="font-mono text-zinc-300">APISIX_ADMIN_KEY</span> environment
+            variable in <span className="font-mono text-zinc-300">.env.local</span>.
             Rotate it regularly and never expose the Admin API publicly.
             In production, restrict access via VPN or firewall rules.
           </p>

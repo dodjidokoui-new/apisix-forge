@@ -1,14 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import type { Consumer } from '@/types';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-interface Consumer {
-  username: string;
-  plugins?: Record<string, unknown>;
-  create_time?: number;
-}
 
 interface ConsumerFormProps {
   onSubmit: (data: { username: string; authType: string; options: Record<string, unknown> }) => Promise<void>;
@@ -51,13 +46,10 @@ const AUTH_TYPES = [
 function ConsumerForm({ onSubmit, onCancel, submitting, error }: ConsumerFormProps) {
   const [username, setUsername] = useState('');
   const [authType, setAuthType] = useState('key-auth');
-  const [options, setOptions] = useState<Record<string, unknown>>({
-    header: 'apikey',
-  });
+  const [options, setOptions] = useState<Record<string, unknown>>({ header: 'apikey' });
 
   function handleAuthTypeChange(id: string) {
     setAuthType(id);
-    // Reset options to defaults for the selected auth type
     const type = AUTH_TYPES.find(t => t.id === id);
     if (type) {
       setOptions(Object.fromEntries(type.options.map(o => [o.key, o.default])));
@@ -94,7 +86,11 @@ function ConsumerForm({ onSubmit, onCancel, submitting, error }: ConsumerFormPro
           {AUTH_TYPES.map(type => (
             <div
               key={type.id}
+              role="radio"
+              aria-checked={authType === type.id}
+              tabIndex={0}
               onClick={() => handleAuthTypeChange(type.id)}
+              onKeyDown={e => e.key === 'Enter' && handleAuthTypeChange(type.id)}
               className={`cursor-pointer rounded-lg p-3 border transition-colors ${
                 authType === type.id
                   ? 'border-white bg-zinc-800'
@@ -113,7 +109,7 @@ function ConsumerForm({ onSubmit, onCancel, submitting, error }: ConsumerFormPro
         </div>
       </div>
 
-      {/* Advanced options for selected auth type */}
+      {/* Options for selected auth type */}
       {selectedType && selectedType.options.length > 0 && (
         <div className="bg-zinc-950 rounded p-4 border border-zinc-700 space-y-3">
           <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Options</p>
@@ -126,7 +122,7 @@ function ConsumerForm({ onSubmit, onCancel, submitting, error }: ConsumerFormPro
                   onChange={e => updateOption(opt.key, e.target.value)}
                   className="flex-1 bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs focus:outline-none focus:border-zinc-500"
                 >
-                  {opt.choices?.map(c => (
+                  {(opt as { choices?: string[] }).choices?.map(c => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
@@ -147,6 +143,7 @@ function ConsumerForm({ onSubmit, onCancel, submitting, error }: ConsumerFormPro
 
       <div className="flex gap-3 pt-2">
         <button
+          type="button"
           onClick={() => onSubmit({ username, authType, options })}
           disabled={submitting}
           className="bg-white text-zinc-900 text-sm px-4 py-2 rounded-md hover:bg-zinc-200 transition-colors disabled:opacity-50"
@@ -154,6 +151,7 @@ function ConsumerForm({ onSubmit, onCancel, submitting, error }: ConsumerFormPro
           {submitting ? 'Creating...' : 'Create consumer'}
         </button>
         <button
+          type="button"
           onClick={onCancel}
           className="text-zinc-400 text-sm px-4 py-2 rounded-md hover:text-white transition-colors"
         >
@@ -184,12 +182,14 @@ function CredentialBadge({ label, value }: { label: string; value: string }) {
           {revealed ? value : '••••••••••••••••••••••••'}
         </code>
         <button
+          type="button"
           onClick={() => setRevealed(!revealed)}
           className="text-xs text-zinc-500 hover:text-white transition-colors flex-shrink-0"
         >
           {revealed ? 'Hide' : 'Show'}
         </button>
         <button
+          type="button"
           onClick={handleCopy}
           className="text-xs text-zinc-500 hover:text-white transition-colors flex-shrink-0"
         >
@@ -209,10 +209,10 @@ export default function ConsumersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Store generated credentials after creation — key: username
+  // Credentials are stored in memory only — they are shown once after creation
   const [credentials, setCredentials] = useState<Record<string, { type: string; key?: string; secret?: string }>>({});
 
-  async function fetchConsumers() {
+  const fetchConsumers = useCallback(async () => {
     try {
       const res = await fetch('/api/consumers');
       const data = await res.json();
@@ -222,7 +222,7 @@ export default function ConsumersPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   async function handleCreate(data: { username: string; authType: string; options: Record<string, unknown> }) {
     setError('');
@@ -236,7 +236,6 @@ export default function ConsumersPage() {
       const json = await res.json();
       if (!res.ok || json.error) { setError(json.error || 'Failed to create consumer'); return; }
 
-      // Store generated credentials so the user can copy them
       if (json.credentials) {
         setCredentials(prev => ({ ...prev, [data.username]: json.credentials }));
       }
@@ -254,13 +253,14 @@ export default function ConsumersPage() {
     fetchConsumers();
   }
 
-  useEffect(() => { fetchConsumers(); }, []);
+  useEffect(() => { fetchConsumers(); }, [fetchConsumers]);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-semibold">Consumers</h1>
         <button
+          type="button"
           onClick={() => { setShowForm(!showForm); setError(''); }}
           className="bg-white text-zinc-900 text-sm px-4 py-2 rounded-md hover:bg-zinc-200 transition-colors"
         >
@@ -296,7 +296,6 @@ export default function ConsumersPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-mono text-sm">{consumer.username}</p>
                   <div className="flex items-center gap-3 mt-1 flex-wrap">
-                    {/* Active plugins */}
                     {consumer.plugins && Object.keys(consumer.plugins).map(plugin => (
                       <span key={plugin} className="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded">
                         {plugin}
@@ -309,11 +308,11 @@ export default function ConsumersPage() {
                     )}
                   </div>
 
-                  {/* Show credentials if freshly created this session */}
+                  {/* Show credentials once, immediately after creation */}
                   {credentials[consumer.username] && (
                     <div className="mt-2">
                       <p className="text-xs text-amber-400">
-                        ⚠ Save these credentials — they won't be shown again
+                        ⚠ Save these credentials — they won&apos;t be shown again
                       </p>
                       {credentials[consumer.username].key && (
                         <CredentialBadge
@@ -332,6 +331,7 @@ export default function ConsumersPage() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => handleDelete(consumer.username)}
                   className="text-xs text-red-400 hover:text-red-300 transition-colors ml-4"
                 >
