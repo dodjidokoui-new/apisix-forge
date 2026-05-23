@@ -1,55 +1,59 @@
 # APISIX Forge
 
-APISIX Forge is an open-source management dashboard built on top of Apache APISIX. It provides a unified interface to configure routes, manage consumers, monitor WAF activity, and observe gateway metrics, without requiring manual interaction with the Admin API or writing configuration files by hand.
+APISIX Forge is an open-source API gateway management platform built on top of Apache APISIX. It provides a complete self-hosted stack combining a high-performance API gateway, an integrated WebAssembly WAF, full observability, and a management dashboard — deployable in minutes with a single command.
 
 ## The problem it solves
 
-Deploying Apache APISIX in a secure, production-ready configuration typically takes several days of work for an experienced engineer. The official Apache APISIX Dashboard was deprecated in 2023 and does not cover security-oriented use cases such as WAF configuration, audit trails, or observability. Existing enterprise alternatives such as Kong Enterprise or AWS API Gateway cost between 20,000 and 100,000 euros per year and introduce vendor lock-in.
+Deploying Apache APISIX in a secure, production-ready configuration typically takes several days of work for an experienced engineer. The official Apache APISIX Dashboard was deprecated in 2023 and does not cover security-oriented use cases. Existing enterprise alternatives such as Kong Enterprise or AWS API Gateway cost between 20,000 and 100,000 euros per year and introduce vendor lock-in.
 
-APISIX Forge fills this gap by providing a single installable tool that combines API gateway management, integrated WAF, full observability, and a security-focused dashboard. It is entirely self-hosted, requires no subscription, and is licensed under Apache 2.0.
+APISIX Forge fills this gap by packaging everything into a single Docker Compose stack: gateway, WAF, observability, and a management UI. No manual configuration files, no vendor subscription, no cloud dependency.
 
 ## What it includes
 
-APISIX Forge deploys and connects the following components:
-
-- **Apache APISIX 3.11** as the API gateway, built on Nginx/OpenResty
-- **Coraza WAF** compiled to WebAssembly, integrated natively into APISIX with the OWASP Core Rule Set 4.0
-- **etcd 3.5** as the distributed configuration store
-- **Prometheus** for metrics collection with a 15-day retention period
-- **Grafana** with two pre-configured dashboards: one for gateway metrics and one for WAF activity
-- **Loki and Promtail** for structured log aggregation, with automatic parsing of Coraza WAF events into labeled streams
-- **A Next.js dashboard** for managing routes, consumers, and monitoring WAF events in real time
-
-## What the dashboard covers
-
-**Routes**: create, edit, enable, disable, and delete routes. Configure HTTP methods, upstream host and load balancing strategy, priority, and plugins. Available plugins include Coraza WAF, rate limiting, JWT authentication, key authentication, CORS, and Prometheus metrics. Each plugin exposes its configuration options directly in the interface.
-
-**Consumers**: create consumers with key-auth or jwt-auth. API keys and JWT secrets are generated automatically and displayed once at creation time with show and copy controls.
-
-**WAF**: live feed of Coraza block events sourced from Loki, with severity, rule ID, source IP, and targeted URI.
-
-**Overview**: real-time health status of all services with latency indicators, route and consumer counts, and a log of recent activity.
-
-## Stack
-
-| Component | Version |
+| Component | Role |
 |---|---|
-| Apache APISIX | 3.11.0 |
-| Coraza WAF | 0.5.0 |
-| OWASP Core Rule Set | 4.0.0-rc2 |
-| etcd | 3.5.17 |
-| Prometheus | 2.47.0 |
-| Grafana | 10.4.0 |
-| Loki | 2.9.0 |
-| Node.js | 24.x |
-| Next.js | 16.x |
+| Apache APISIX 3.11 | API gateway — Nginx/OpenResty |
+| Coraza WAF 0.5.0 | WebAssembly WAF with OWASP CRS 4.0 |
+| etcd 3.5 | Distributed configuration store |
+| Prometheus 2.47 | Metrics collection, 15-day retention |
+| Grafana 10.4 | Pre-configured dashboards for gateway and WAF |
+| Loki 2.9 | Structured log aggregation |
+| Promtail 2.9 | Log collection with Coraza event parsing |
+| Next.js dashboard | Management UI — routes, consumers, WAF feed |
+| httpbin | Test backend for development and plugin testing |
+
+## Dashboard features
+
+**Routes**: create, edit, enable, disable, and delete routes. Configure URI, HTTP methods, upstream host, load balancing strategy (roundrobin, chash, ewma, least_conn), priority, and route name. Available plugins with advanced options:
+- Coraza WAF (rule engine mode, debug level)
+- Rate Limit (rate, burst, key, rejected code)
+- JWT Auth (header name, algorithm, expiry)
+- Key Auth (header name)
+- CORS (origins, methods, headers, max age)
+- Prometheus (prefer_name enabled by default)
+
+**Consumers**: create consumers with key-auth or jwt-auth. API keys and JWT secrets are generated automatically and displayed once at creation with show and copy controls.
+
+**WAF**: live feed of Coraza block events pulled from Loki every 5 seconds, with severity badge, rule ID, source IP, and targeted URI. Links to the Grafana WAF dashboard for full observability.
+
+**Overview**: real-time health status of all services with latency indicators, route and consumer counts, and a log of the 5 most recently modified routes and created consumers.
+
+**Settings**: stack version summary and security notice.
+
+## Grafana dashboards
+
+Two dashboards are provisioned automatically at startup:
+
+**APISIX Gateway** — requests per route, RPS by status code, latency percentiles (P50/P90/P95/P99) for request/APISIX/upstream, bandwidth by type, Nginx connection states, etcd modify indexes.
+
+**Coraza WAF** — total blocked requests, unique IPs blocked, unique URIs attacked, WAF events over time, live log feed, top blocked IPs table, top attacked URIs table, top HTTP methods blocked.
 
 ## Requirements
 
 - Ubuntu 20.04 or later, Debian 11 or later
-- Docker and Docker Compose v2
-- Node.js 24.x
-- 4 vCPUs and 8 GB RAM minimum
+- Docker Engine with Docker Compose v2
+- 4 vCPUs minimum
+- 8 GB RAM minimum
 - 40 GB disk space
 
 ## Getting started
@@ -61,10 +65,16 @@ git clone https://github.com/dodjidokoui-new/apisix-forge.git
 cd apisix-forge
 ```
 
-Build the custom APISIX image with Coraza embedded:
+Build the custom APISIX image with Coraza WAF embedded:
 
 ```bash
 docker build --network=host -f docker/Dockerfile.apisix -t apisix-forge:latest .
+```
+
+Build the dashboard image:
+
+```bash
+docker build --network=host -f dashboard/Dockerfile -t apisix-forge-dashboard:latest dashboard/
 ```
 
 Start the full stack:
@@ -73,28 +83,52 @@ Start the full stack:
 docker compose up -d
 ```
 
-Start the dashboard in development mode:
-
-```bash
-cd dashboard
-npm install
-cp .env.local.example .env.local
-npm run dev -- --port 3001
-```
-
 ## Access
 
 | Service | URL | Credentials |
 |---|---|---|
 | Dashboard | http://localhost:3001 | None |
-| APISIX Admin API | http://localhost:9180 | X-API-KEY: apisixforge-admin-key |
 | Grafana | http://localhost:3000 | admin / apisixforge |
+| APISIX gateway | http://localhost:9080 | None |
+| APISIX Admin API | http://localhost:9180 | X-API-KEY: apisixforge-admin-key |
 | Prometheus | http://localhost:9090 | None |
 | Loki | http://localhost:3100 | None |
+| httpbin (test backend) | http://localhost:8080 | None |
+
+## Testing with httpbin
+
+httpbin is included as a test backend. Once the stack is running, create a route from the dashboard pointing to httpbin:80 and use any of its endpoints to test plugins:
+
+```bash
+# Test a basic route
+curl http://localhost:9080/get
+
+# Test WAF blocking
+curl "http://localhost:9080/get?q=<script>alert(1)</script>"
+
+# Test rate limiting
+for i in {1..20}; do curl -s http://localhost:9080/get -o /dev/null; done
+```
+
+## Architecture
+
+All services run on a shared Docker bridge network (apisix-net). The dashboard communicates with APISIX via the Admin API and with Loki directly for WAF log queries. Promtail collects Docker container logs and parses Coraza WAF events into structured Loki streams with labels (job, waf_action, client_ip, method, request_uri, rule_id, severity).
 
 ## Security notice
 
-The Admin API key and Grafana password are set to default values for local use. Before exposing this stack on any network, rotate all credentials in the relevant configuration files and restrict Admin API access to trusted IP ranges only. The Admin API should never be exposed publicly.
+All default credentials are intentionally simple for local development. Before exposing this stack on any network:
+
+- Rotate the APISIX Admin API key in config/apisix/config.yaml and the dashboard environment variables
+- Change the Grafana admin password via the GF_SECURITY_ADMIN_PASSWORD environment variable
+- Restrict the allow_admin IP range in config/apisix/config.yaml
+- Place the Admin API and dashboard behind a VPN or firewall — never expose them publicly
+
+## Roadmap
+
+- V0.2: live route configuration updates via SSE, plugin editor with JSON schema forms, import/export
+- V0.3: WAF rule management from the dashboard, IP blocklisting, custom CRS directives
+- V1.0: AI agent with Claude tool use for natural language configuration and WAF analysis
+- V1.x: SSO (OIDC, Entra ID), multi-tenant namespaces, Kubernetes Helm chart
 
 ## License
 
