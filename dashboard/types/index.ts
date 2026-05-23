@@ -2,6 +2,7 @@
 
 export interface Route {
   id: string;
+  name?: string;
   uri: string;
   status: number;
   priority?: number;

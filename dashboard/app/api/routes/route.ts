@@ -12,7 +12,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { uri, upstream, upstreamType, methods, plugins, priority } = await req.json();
+    const { name, uri, upstream, upstreamType, methods, plugins, priority } = await req.json();
 
     if (!uri || !upstream) {
       return NextResponse.json({ error: 'URI and upstream are required' }, { status: 400 });
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
       },
     };
 
+    if (name) body.name = name;
     if (methods && methods.length > 0) body.methods = methods;
     if (plugins && Object.keys(plugins).length > 0) body.plugins = plugins;
 

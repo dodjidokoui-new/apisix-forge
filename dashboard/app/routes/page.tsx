@@ -124,7 +124,7 @@ const AVAILABLE_PLUGINS: PluginDefinition[] = [
     id: 'prometheus',
     label: 'Prometheus',
     description: 'Expose metrics for this route',
-    defaultConfig: {},
+    defaultConfig: { prefer_name: true },
     options: [],
   },
 ];
@@ -190,6 +190,7 @@ function PluginOptionsPanel({
 // ─── Route form (shared by create and edit) ───────────────────────────────────
 
 function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteFormProps) {
+  const [name, setName] = useState(initial?.name ?? '');
   const [uri, setUri] = useState(initial?.uri ?? '');
   const [upstreamHost, setUpstreamHost] = useState(
     initial?.upstream ? Object.keys(initial.upstream.nodes)[0] : ''
@@ -257,6 +258,7 @@ function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteForm
     }
 
     await onSubmit({
+      name: name || undefined,
       uri,
       upstream: upstreamHost,
       upstreamType,
@@ -268,6 +270,19 @@ function RouteForm({ initial, onSubmit, onCancel, submitting, error }: RouteForm
 
   return (
     <div className="space-y-5">
+
+      {/* Name */}
+      <div>
+        <label className="text-xs text-zinc-400 block mb-1">Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="my-api-route"
+          className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm font-mono focus:outline-none focus:border-zinc-500"
+        />
+        <p className="text-xs text-zinc-600 mt-1">(optional — displayed in Grafana)</p>
+      </div>
 
       {/* URI */}
       <div>
@@ -530,6 +545,9 @@ export default function RoutesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-1">
                       <span className="font-mono text-sm">{route.uri}</span>
+                      {route.name && (
+                        <span className="text-xs text-zinc-400">{route.name}</span>
+                      )}
                       <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                         route.status === 1 ? 'bg-green-500' : 'bg-red-500'
                       }`} />

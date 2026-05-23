@@ -7,7 +7,7 @@ type RouteParams = { params: Promise<{ id: string }> };
 export async function PUT(req: Request, { params }: RouteParams) {
   try {
     const { id } = await params;
-    const { uri, upstream, upstreamType, methods, plugins, priority } = await req.json();
+    const { name, uri, upstream, upstreamType, methods, plugins, priority } = await req.json();
 
     const body: Record<string, unknown> = {
       uri,
@@ -18,6 +18,7 @@ export async function PUT(req: Request, { params }: RouteParams) {
       },
     };
 
+    if (name) body.name = name;
     if (methods && methods.length > 0) body.methods = methods;
     if (plugins && Object.keys(plugins).length > 0) body.plugins = plugins;
 
