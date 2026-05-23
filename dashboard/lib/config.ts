@@ -7,16 +7,16 @@
  */
 export const config = {
   apisix: {
-    adminUrl: process.env.APISIX_ADMIN_URL ?? 'http://localhost:9180',
+    adminUrl: process.env.APISIX_ADMIN_URL ?? 'http://apisix:9180',
     adminKey: process.env.APISIX_ADMIN_KEY ?? 'apisixforge-admin-key',
   },
   grafana: {
-    url: process.env.GRAFANA_URL ?? 'http://localhost:3000',
+    url: process.env.GRAFANA_URL ?? 'http://grafana:3000',
   },
   prometheus: {
-    url: process.env.PROMETHEUS_URL ?? 'http://localhost:9090',
+    url: process.env.PROMETHEUS_URL ?? 'http://prometheus:9090',
   },
   loki: {
-    url: process.env.LOKI_URL ?? 'http://localhost:3100',
+    url: process.env.LOKI_URL ?? 'http://loki:3100',
   },
 } as const;
