@@ -4,7 +4,7 @@ APISIX Forge is an open-source API gateway management platform built on top of A
 
 ## The problem it solves
 
-Deploying Apache APISIX in a secure, production-ready configuration typically takes several days of work for an experienced engineer. The official Apache APISIX Dashboard was deprecated in 2023 and does not cover security-oriented use cases. Existing enterprise alternatives such as Kong Enterprise or AWS API Gateway cost between 20,000 and 100,000 euros per year and introduce vendor lock-in.
+Deploying Apache APISIX in a secure, production-ready configuration typically takes several days of work for an experienced engineer.
 
 APISIX Forge fills this gap by packaging everything into a single Docker Compose stack: gateway, WAF, observability, and a management UI. No manual configuration files, no vendor subscription, no cloud dependency.
 
@@ -12,13 +12,13 @@ APISIX Forge fills this gap by packaging everything into a single Docker Compose
 
 | Component | Role |
 |---|---|
-| Apache APISIX 3.11 | API gateway, Nginx/OpenResty |
-| Coraza WAF 0.5.0 | WebAssembly WAF with OWASP CRS 4.0 |
-| etcd 3.5 | Distributed configuration store |
-| Prometheus 2.47 | Metrics collection, 15-day retention |
-| Grafana 10.4 | Pre-configured dashboards for gateway and WAF |
-| Loki 2.9 | Structured log aggregation with Coraza event parsing |
-| Promtail 2.9 | Log collection and label extraction |
+| Apache APISIX | API gateway, Nginx/OpenResty |
+| Coraza WAF | WebAssembly WAF with OWASP CRS 4.0 |
+| etcd | Distributed configuration store |
+| Prometheus | Metrics collection, 15-day retention |
+| Grafana | Pre-configured dashboards for gateway and WAF |
+| Loki | Structured log aggregation with Coraza event parsing |
+| Promtail | Log collection and label extraction |
 | Next.js dashboard | Management UI, routes, consumers, WAF feed |
 | httpbin | Test backend included for development |
 
@@ -52,8 +52,8 @@ Two dashboards are provisioned automatically at startup.
 
 - Ubuntu 20.04 or later, Debian 11 or later
 - Docker Engine with Docker Compose v2
-- 4 vCPUs minimum
-- 8 GB RAM minimum
+- 2 vCPUs minimum
+- 4 GB RAM minimum
 - 40 GB disk space
 
 ## Getting started
