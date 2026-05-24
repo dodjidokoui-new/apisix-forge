@@ -144,7 +144,6 @@ All default credentials are intentionally simple for local development. Before e
 
 - V0.2: live route updates via SSE, plugin editor with JSON schema forms, import/export configuration
 - V0.3: WAF rule management, IP blocklisting, custom CRS directives from the dashboard
-- V1.0: AI agent with Claude tool use for natural language configuration and WAF analysis
 - V1.x: SSO (OIDC, Entra ID), multi-tenant namespaces, Kubernetes Helm chart
 
 ## License
