@@ -120,6 +120,9 @@ for i in {1..30}; do curl -s http://localhost:9080/get -o /dev/null; sleep 0.3; 
 
 All services run on a shared Docker bridge network (`apisix-net`). The dashboard communicates with APISIX via the Admin API and queries Loki directly for WAF log feeds. Promtail collects Docker container logs and parses Coraza WAF events into structured Loki streams with labels: `job`, `waf_action`, `client_ip`, `method`, `request_uri`, `rule_id`, `severity`. Coraza WAF is compiled to WebAssembly and integrated natively into APISIX with zero network overhead.
 
+<img width="1091" height="713" alt="image" src="https://github.com/user-attachments/assets/49d1aea3-10c6-43f0-b914-75f38f19aef8" />
+
+
 ## Current status
 
 This project is under active development. The core stack is stable and functional in a local environment. The following areas are still being improved:
