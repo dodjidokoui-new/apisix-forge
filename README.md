@@ -1,6 +1,6 @@
 # APISIX Forge
 
-APISIX Forge is an open-source API gateway management platform built on top of Apache APISIX. It provides a complete self-hosted stack combining a high-performance API gateway, an integrated WebAssembly WAF, full observability, and a management dashboard — deployable in a few minutes with Docker Compose.
+APISIX Forge is an open-source API gateway management platform built on top of Apache APISIX. It provides a complete self-hosted stack combining a high-performance API gateway, an integrated WebAssembly WAF, full observability, and a management dashboard deployable in a few minutes with Docker Compose.
 
 ## The problem it solves
 
@@ -12,14 +12,14 @@ APISIX Forge fills this gap by packaging everything into a single Docker Compose
 
 | Component | Role |
 |---|---|
-| Apache APISIX 3.11 | API gateway — Nginx/OpenResty |
+| Apache APISIX 3.11 | API gateway, Nginx/OpenResty |
 | Coraza WAF 0.5.0 | WebAssembly WAF with OWASP CRS 4.0 |
 | etcd 3.5 | Distributed configuration store |
 | Prometheus 2.47 | Metrics collection, 15-day retention |
 | Grafana 10.4 | Pre-configured dashboards for gateway and WAF |
 | Loki 2.9 | Structured log aggregation with Coraza event parsing |
 | Promtail 2.9 | Log collection and label extraction |
-| Next.js dashboard | Management UI — routes, consumers, WAF feed |
+| Next.js dashboard | Management UI, routes, consumers, WAF feed |
 | httpbin | Test backend included for development |
 
 ## Dashboard features
@@ -44,9 +44,9 @@ APISIX Forge fills this gap by packaging everything into a single Docker Compose
 
 Two dashboards are provisioned automatically at startup.
 
-**APISIX Gateway** — requests per route (donut), RPS by status code, RPS per service/route, request latency P50/P90/P95/P99, APISIX latency P50/P90/P95/P99, upstream latency P50/P90/P95/P99 per node, bandwidth ingress/egress, Nginx connection states, etcd modify indexes, etcd reachability.
+**APISIX Gateway** requests per route (donut), RPS by status code, RPS per service/route, request latency P50/P90/P95/P99, APISIX latency P50/P90/P95/P99, upstream latency P50/P90/P95/P99 per node, bandwidth ingress/egress, Nginx connection states, etcd modify indexes, etcd reachability.
 
-**Coraza WAF** *(work in progress — improvements planned)* — total blocked requests, unique IPs blocked, unique URIs attacked, WAF events over time, live log feed filtered on Coraza events, top blocked IPs table, top attacked URIs table, top blocked HTTP methods. The Loki parsing pipeline is functional but further tuning is planned to reduce access log noise in the live feed panel.
+**Coraza WAF** *(work in progress improvements planned)* total blocked requests, unique IPs blocked, unique URIs attacked, WAF events over time, live log feed filtered on Coraza events, top blocked IPs table, top attacked URIs table, top blocked HTTP methods. The Loki parsing pipeline is functional but further tuning is planned to reduce access log noise in the live feed panel.
 
 ## Requirements
 
@@ -103,13 +103,13 @@ httpbin is included as a test backend. Create a route from the dashboard pointin
 # Test a basic route
 curl http://localhost:9080/get
 
-# Test WAF blocking — XSS
+# Test WAF blocking XSS
 curl "http://localhost:9080/get?q=<script>alert(1)</script>"
 
-# Test WAF blocking — SQLi
+# Test WAF blocking SQLi
 curl "http://localhost:9080/get?id=1' OR '1'='1"
 
-# Test WAF blocking — path traversal
+# Test WAF blocking path traversal
 curl "http://localhost:9080/get?file=../../../etc/passwd"
 
 # Generate traffic for Grafana metrics
