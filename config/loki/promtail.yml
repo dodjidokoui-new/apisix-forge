@@ -35,10 +35,8 @@ scrape_configs:
         regex: /apisix
         action: keep
     pipeline_stages:
-      # Only keep Coraza Access denied lines
       - match:
           selector: '{container="/apisix"}'
-          action: keep
           stages:
             - regex:
                 expression: '.*Coraza: Access denied.*client: (?P<client_ip>[\d.]+).*request: "(?P<method>[A-Z]+) (?P<request_uri>[^ ]+)'
