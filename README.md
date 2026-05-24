@@ -24,6 +24,11 @@ APISIX Forge fills this gap by packaging everything into a single Docker Compose
 
 ## Dashboard features
 
+<img width="1909" height="947" alt="Capture d&#39;écran 2026-05-24 214834" src="https://github.com/user-attachments/assets/74146398-821d-4658-9511-8c1a559283db" />
+
+<img width="1896" height="922" alt="image" src="https://github.com/user-attachments/assets/b968e7e3-3d36-4f93-bbf7-13f833c5385d" />
+
+
 **Routes**: create, edit, enable, disable, and delete routes. Configure URI, HTTP methods, upstream host, load balancing strategy, priority, and route name. Available plugins with advanced options:
 - Coraza WAF (rule engine mode, debug level)
 - Rate Limit (rate, burst, key, rejected code)
@@ -46,7 +51,14 @@ Two dashboards are provisioned automatically at startup.
 
 **APISIX Gateway** requests per route (donut), RPS by status code, RPS per service/route, request latency P50/P90/P95/P99, APISIX latency P50/P90/P95/P99, upstream latency P50/P90/P95/P99 per node, bandwidth ingress/egress, Nginx connection states, etcd modify indexes, etcd reachability.
 
+<img width="1893" height="927" alt="Capture d&#39;écran 2026-05-24 215414" src="https://github.com/user-attachments/assets/29776fd3-ee17-4a97-b55f-5193d438bee8" />
+
+
+
 **Coraza WAF** *(work in progress improvements planned)* total blocked requests, unique IPs blocked, unique URIs attacked, WAF events over time, live log feed filtered on Coraza events, top blocked IPs table, top attacked URIs table, top blocked HTTP methods. The Loki parsing pipeline is functional but further tuning is planned to reduce access log noise in the live feed panel.
+
+<img width="1609" height="850" alt="Capture d&#39;écran 2026-05-24 215323" src="https://github.com/user-attachments/assets/c190150a-9660-4007-9646-7bed60234bb4" />
+
 
 ## Requirements
 
